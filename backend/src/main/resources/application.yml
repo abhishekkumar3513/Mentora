@@ -1,0 +1,37 @@
+server:
+  port: ${SERVER_PORT:8080}
+spring:
+  application:
+    name: mentora
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/mentora}
+    username: ${DB_USER:mentora}
+    password: ${DB_PASSWORD:mentora}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 6MB
+      max-request-size: 20MB
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+mentora:
+  jwt:
+    secret: ${JWT_SECRET:mentora-development-secret-key-change-me-0123456789abcdef}
+    expiry-hours: 12
+  cors-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
+  storage-dir: ${STORAGE_DIR:./storage}
+  seed-demo-data: ${SEED_DEMO_DATA:true}
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:gemini-flash-lite-latest,gemini-3.5-flash-lite,gemini-flash-latest}
+    timeout-seconds: 15

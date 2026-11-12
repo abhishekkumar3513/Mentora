@@ -1,0 +1,55 @@
+﻿services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mentora}
+      POSTGRES_USER: ${POSTGRES_USER:-mentora}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mentora}
+    ports:
+      - "5433:5432"
+    volumes:
+      - mentora-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mentora} -d ${POSTGRES_DB:-mentora}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-mentora}
+      DB_USER: ${POSTGRES_USER:-mentora}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-mentora}
+      JWT_SECRET: ${JWT_SECRET:-mentora-development-secret-key-change-me-0123456789abcdef}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-lite-latest,gemini-3.5-flash-lite,gemini-flash-latest}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      STORAGE_DIR: /data/storage
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=${APP_TIMEZONE:-Asia/Kolkata}"
+    ports:
+      - "${BACKEND_PORT:-8081}:8080"
+    volumes:
+      - mentora-storage:/data/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+
+volumes:
+  mentora-pgdata:
+  mentora-storage:

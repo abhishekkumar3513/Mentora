@@ -1,0 +1,4 @@
+# Keep shell scripts LF so they run on Linux/macOS/Git Bash after checkout on Windows
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf

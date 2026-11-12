@@ -1,0 +1,13 @@
+package com.mentora.repo;
+import com.mentora.domain.*;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.*;
+import java.time.*;
+import java.util.*;
+
+public interface SemesterResultRepository extends JpaRepository<SemesterResult, Long> {
+  List<SemesterResult> findByStudentIdOrderBySemester(Long studentId);
+  List<SemesterResult> findByStudentIdIn(Collection<Long> ids);
+  Optional<SemesterResult> findByStudentIdAndSubjectId(Long studentId, Long subjectId);
+}
