@@ -42,8 +42,8 @@ export function AssessmentConfig() {
 
 export function SettingsPage() {
   return (
-    <Page title="Settings" subtitle="Attendance thresholds, performance criteria and messaging limits">
-      <SettingsTable prefixes={['attendance.', 'perf.', 'moderation.']} />
+    <Page title="Settings" subtitle="Attendance and support-signal thresholds, notification priorities, performance criteria and messaging limits">
+      <SettingsTable prefixes={['attendance.', 'signals.', 'priority.', 'perf.', 'moderation.']} />
     </Page>
   )
 }

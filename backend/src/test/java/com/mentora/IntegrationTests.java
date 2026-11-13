@@ -80,8 +80,8 @@ class IntegrationTests {
   @Test @Order(4) void mentorSeesOnlyAssignedStudents() throws Exception {
     String m1 = token("mentor1@mentora.edu", "Mentor@123"), m2 = token("mentor2@mentora.edu", "Mentor@123");
     JsonNode l1 = call(get("/api/mentor/students").param("size", "50"), m1, 200), l2 = call(get("/api/mentor/students").param("size", "50"), m2, 200);
-    assertEquals(30, l1.get("total").asInt());
-    assertEquals(30, l2.get("total").asInt());
+    assertEquals(33, l1.get("total").asInt());
+    assertEquals(32, l2.get("total").asInt());
     long overlap = 0;
     for (JsonNode a : l1.get("content")) for (JsonNode b : l2.get("content")) if (a.get("studentId").equals(b.get("studentId"))) overlap++;
     assertEquals(0, overlap);
@@ -98,7 +98,7 @@ class IntegrationTests {
     call(post("/api/students/" + other + "/feedback").contentType(MediaType.APPLICATION_JSON).content("{\"content\":\"x\"}"), m1, 403);
     call(get("/api/mentor/marks-grid").param("subjectId", "99999"), m1, 200);
     JsonNode grid = call(get("/api/mentor/attendance-grid"), m1, 200);
-    assertEquals(30, grid.get("rows").size());
+    assertEquals(33, grid.get("rows").size());
   }
 
   @Test @Order(5) void studentSeesOnlyOwnRecords() throws Exception {

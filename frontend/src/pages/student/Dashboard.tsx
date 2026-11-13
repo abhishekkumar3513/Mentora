@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Bell, CalendarCheck, FileText, GraduationCap, Lightbulb, MessageSquare, TrendingUp, BookOpen, AlertTriangle } from 'lucide-react'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
+import StudentSupportPanel from '../../components/StudentSupportPanel'
 import { Async, Avatar, Badge, Empty, Page, SectionHeader, Stat, fmtDate, statusTone, useLoad } from '../../components/ui'
 
 export default function StudentDashboard() {
@@ -53,6 +54,11 @@ export default function StudentDashboard() {
                   <div className="px-3 pb-3 flex gap-2"><Link className="btn btn-ghost" to="/student/analytics">Analytics</Link><Link className="btn btn-ghost" to="/student/marks">Internal marks</Link></div>
                 </div>
               </div>
+              <div className="card p-3 flex flex-wrap items-center gap-3">
+                <div className="flex-1 min-w-[220px]"><div className="font-bold">Need support?</div><div className="text-sm text-gray-600">Ask for academic, attendance, assignment, technical, career, parent or personal counselling support.</div></div>
+                <Link className="btn btn-primary" to="/student/support">Open Student Support Navigator</Link>
+              </div>
+              {user!.studentId && <StudentSupportPanel studentId={user!.studentId} forStudent />}
             </div>
           )
         }}

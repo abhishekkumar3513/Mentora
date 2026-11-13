@@ -34,6 +34,10 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/login", "/ws/**", "/actuator/health").permitAll()
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .requestMatchers("/api/mentor/**", "/api/ai/**").hasRole("MENTOR")
+            .requestMatchers(HttpMethod.POST, "/api/support/requests").hasRole("STUDENT")
+            .requestMatchers(HttpMethod.GET, "/api/support/requests").hasAnyRole("MENTOR", "ADMIN")
+            .requestMatchers("/api/records/**", "/api/overview/**", "/api/support/actions", "/api/support/owners", "/api/support/requests/*").hasAnyRole("MENTOR", "ADMIN")
+            .requestMatchers("/api/support/my-requests").hasRole("STUDENT")
             .anyRequest().authenticated())
         .exceptionHandling(e -> e
             .authenticationEntryPoint((req, res, ex) -> {

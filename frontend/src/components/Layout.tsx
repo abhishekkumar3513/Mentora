@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Bell, BarChart3, BookOpen, Bot, CalendarCheck, ClipboardList, FileText, GraduationCap, LayoutDashboard, LogOut, Menu, MessageSquare,
-  Settings, SlidersHorizontal, Upload, UserCircle, Users, UserCog, Building2, Library, CalendarRange, Link2, Award, X, Wifi, WifiOff,
+  Settings, SlidersHorizontal, LifeBuoy, Compass, ClipboardCheck, ShieldCheck, Upload, UserCircle, Users, UserCog, Building2, Library, CalendarRange, Link2, Award, X, Wifi, WifiOff,
 } from 'lucide-react'
 import { useAuth } from '../lib/auth'
 import { api } from '../lib/api'
@@ -17,6 +17,7 @@ const NAV: Record<string, Item[]> = {
     { to: '/student/marks', label: 'Internal Marks', icon: ClipboardList },
     { to: '/student/results', label: 'Results', icon: Award },
     { to: '/student/analytics', label: 'Performance Analytics', icon: BarChart3 },
+    { to: '/student/support', label: 'Support Navigator', icon: Compass },
     { to: '/student/messages', label: 'Messages', icon: MessageSquare },
     { to: '/student/leaves', label: 'Leave Applications', icon: FileText },
     { to: '/notifications', label: 'Notifications', icon: Bell },
@@ -24,7 +25,10 @@ const NAV: Record<string, Item[]> = {
   ],
   MENTOR: [
     { to: '/mentor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/overview', label: 'Department Overview', icon: LayoutDashboard },
     { to: '/mentor/students', label: 'My Students', icon: Users },
+    { to: '/support', label: 'Support Actions', icon: LifeBuoy },
+    { to: '/records', label: 'Academic Records', icon: ClipboardCheck },
     { to: '/mentor/attendance', label: 'Attendance Monitoring', icon: CalendarCheck },
     { to: '/mentor/performance', label: 'Academic Performance', icon: ClipboardList },
     { to: '/mentor/leaves', label: 'Leave Requests', icon: FileText },
@@ -35,6 +39,10 @@ const NAV: Record<string, Item[]> = {
   ],
   ADMIN: [
     { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/overview', label: 'Department Overview', icon: LayoutDashboard },
+    { to: '/support', label: 'Support Actions', icon: LifeBuoy },
+    { to: '/records', label: 'Academic Records', icon: ClipboardCheck },
+    { to: '/admin/support-config', label: 'Support Configuration', icon: ShieldCheck },
     { to: '/admin/students', label: 'Students', icon: GraduationCap },
     { to: '/admin/mentors', label: 'Mentors', icon: UserCog },
     { to: '/admin/departments', label: 'Departments', icon: Building2 },
@@ -71,7 +79,7 @@ export default function Layout() {
       {open && <div className="fixed inset-0 bg-black/30 z-30 lg:hidden" onClick={() => setOpen(false)} />}
       <aside className={`fixed lg:sticky top-0 z-40 h-screen w-60 shrink-0 bg-gray-800 text-gray-200 flex flex-col transition-transform ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="flex items-center justify-between px-4 h-14 border-b border-gray-700">
-          <div className="flex items-center gap-2 font-bold text-white text-lg"><BookOpen size={20} className="text-teal-300" />Mentora</div>
+          <div className="flex items-center gap-2 font-bold text-white text-lg"><BookOpen size={20} className="text-teal-300" />SAARA</div>
           <button className="lg:hidden" aria-label="Close menu" onClick={() => setOpen(false)}><X size={18} /></button>
         </div>
         <nav className="flex-1 overflow-y-auto py-2" aria-label="Main navigation">

@@ -2,12 +2,14 @@ import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Lock } from 'lucide-react'
 import { api, errMsg } from '../../lib/api'
+import { useAuth } from '../../lib/auth'
+import StudentSupportPanel from '../../components/StudentSupportPanel'
 import Chat from '../../components/Chat'
 import { LeaveTable, type Leave } from '../../components/Leaves'
 import { AnalyticsView, AttendanceView, MarksView, ResultsView } from '../../components/StudentViews'
 import { Async, Avatar, Badge, ErrorBox, Page, SectionHeader, Stat, fmtDate, statusTone, useLoad } from '../../components/ui'
 
-const TABS = ['Overview', 'Attendance', 'Internal marks', 'Results', 'Analytics', 'Leaves', 'Messages', 'Notes & feedback']
+const TABS = ['Overview', 'Support', 'Attendance', 'Internal marks', 'Results', 'Analytics', 'Leaves', 'Messages', 'Notes & feedback']
 
 function Notes({ id, kind, title, hint }: { id: string; kind: 'feedback' | 'observations'; title: string; hint: string }) {
   const st = useLoad<any[]>(() => api.get(`/api/students/${id}/${kind}`).then((r) => r.data), [id, kind])
@@ -36,14 +38,16 @@ function Notes({ id, kind, title, hint }: { id: string; kind: 'feedback' | 'obse
 
 export default function StudentProfile() {
   const { id } = useParams()
+  const { user } = useAuth()
+  const back = user?.role === 'ADMIN' ? '/overview' : '/mentor/students'
   const sid = Number(id)
   const [tab, setTab] = useState(TABS[0])
   const prof = useLoad<any>(() => api.get(`/api/students/${id}/profile`).then((r) => r.data), [id])
   const leaves = useLoad<Leave[]>(() => api.get(`/api/students/${id}/leaves`).then((r) => r.data), [id])
 
-  if (prof.error) return <Page title="Student"><ErrorBox error={prof.error} /><Link to="/mentor/students" className="text-blue-600 underline text-sm mt-3 inline-block">Back to my students</Link></Page>
+  if (prof.error) return <Page title="Student"><ErrorBox error={prof.error} /><Link to={back} className="text-blue-600 underline text-sm mt-3 inline-block">Back</Link></Page>
   return (
-    <Page title="Student profile" actions={<Link className="btn btn-ghost" to="/mentor/students"><ArrowLeft size={14} />My students</Link>}>
+    <Page title="Student profile" actions={<Link className="btn btn-ghost" to={back}><ArrowLeft size={14} />{user?.role === 'ADMIN' ? 'Overview' : 'My students'}</Link>}>
       <Async state={prof}>
         {(p) => (
           <div className="space-y-4">
@@ -56,6 +60,7 @@ export default function StudentProfile() {
             <div className="flex gap-1 border-b overflow-x-auto" role="tablist">
               {TABS.map((t) => <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={`px-3 py-2 text-sm whitespace-nowrap border-b-2 ${tab === t ? 'border-teal-600 text-teal-700 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>{t}</button>)}
             </div>
+            {tab === 'Support' && <StudentSupportPanel studentId={sid} />}
             {tab === 'Overview' && (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

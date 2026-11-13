@@ -14,5 +14,7 @@ public class Notification {
   private String link;
   @Column(name="is_read") private boolean read;
   private String dedupeKey;
+  private String priority = "NORMAL";
+  private Long studentId;
   private Instant createdAt = Instant.now();
 }

@@ -29,6 +29,12 @@ import { Departments, Semesters, Subjects } from './pages/admin/Academic'
 import Assignments from './pages/admin/Assignments'
 import ImportData from './pages/admin/ImportData'
 import { AssessmentConfig, SettingsPage } from './pages/admin/Config'
+import Overview from './pages/Overview'
+import SupportStudents from './pages/SupportStudents'
+import Interventions from './pages/Interventions'
+import Records from './pages/Records'
+import StudentSupport from './pages/student/Support'
+import SupportConfig from './pages/admin/SupportConfig'
 
 export const homeFor = (r: Role) => (r === 'ADMIN' ? '/admin/dashboard' : r === 'MENTOR' ? '/mentor/dashboard' : '/student/dashboard')
 
@@ -38,6 +44,15 @@ function Guard({ role, children }: { role?: Role; children: ReactElement }) {
   if (loading) return <Loading />
   if (!user) return <Navigate to="/login" replace />
   if (role && user.role !== role) return <Navigate to={homeFor(user.role)} replace />
+  return children
+}
+
+/** Pages shared by mentors and administrators (the backend scopes the data). */
+function StaffGuard({ children }: { children: ReactElement }) {
+  const { user, loading } = useAuth()
+  if (loading) return <Loading />
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role === 'STUDENT') return <Navigate to={homeFor(user.role)} replace />
   return children
 }
 
@@ -63,6 +78,13 @@ export default function App() {
             <Route path="/student/results" element={<Guard role="STUDENT"><StudentResults /></Guard>} />
             <Route path="/student/analytics" element={<Guard role="STUDENT"><StudentAnalytics /></Guard>} />
             <Route path="/student/messages" element={<Guard role="STUDENT"><StudentMessages /></Guard>} />
+            <Route path="/student/support" element={<Guard role="STUDENT"><StudentSupport /></Guard>} />
+            <Route path="/overview" element={<StaffGuard><Overview /></StaffGuard>} />
+            <Route path="/support-students" element={<StaffGuard><SupportStudents /></StaffGuard>} />
+            <Route path="/support" element={<StaffGuard><Interventions /></StaffGuard>} />
+            <Route path="/records" element={<StaffGuard><Records /></StaffGuard>} />
+            <Route path="/admin/students/:id" element={<Guard role="ADMIN"><StudentProfile /></Guard>} />
+            <Route path="/admin/support-config" element={<Guard role="ADMIN"><SupportConfig /></Guard>} />
             <Route path="/student/leaves" element={<Guard role="STUDENT"><StudentLeaves /></Guard>} />
             <Route path="/mentor/dashboard" element={<Guard role="MENTOR"><MentorDashboard /></Guard>} />
             <Route path="/mentor/students" element={<Guard role="MENTOR"><MentorStudents /></Guard>} />

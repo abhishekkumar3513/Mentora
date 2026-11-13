@@ -33,8 +33,8 @@ export default function Login() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md bg-white border rounded-lg shadow-sm">
         <div className="px-6 py-5 border-b text-center" style={{ background: '#6fc3c3' }}>
-          <div className="flex items-center justify-center gap-2 text-white text-2xl font-bold"><BookOpen />Mentora</div>
-          <p className="text-white/90 text-xs mt-1">AI-powered student mentorship and academic performance monitoring</p>
+          <div className="flex items-center justify-center gap-2 text-white text-2xl font-bold"><BookOpen />SAARA</div>
+          <p className="text-white/90 text-xs mt-1">Student Assistance Advisory Response Action</p>
         </div>
         <form onSubmit={submit} className="p-6 space-y-4">
           <div>

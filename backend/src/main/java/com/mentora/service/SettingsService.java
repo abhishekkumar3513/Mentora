@@ -32,9 +32,16 @@ public class SettingsService {
   public Setting update(String key, String value) {
     Setting s = repo.findById(key).orElseThrow(() -> ApiException.notFound("Unknown setting " + key));
     if (value == null || value.isBlank()) throw ApiException.bad("Value required");
-    if (!"attendance.leave_counts_as_present".equals(key)) {
+    if (key.startsWith("priority.")) {
+      if (!java.util.List.of("NORMAL", "MEDIUM", "HIGH").contains(value.trim().toUpperCase())) throw ApiException.bad("Priority must be NORMAL, MEDIUM or HIGH");
+      value = value.trim().toUpperCase();
+    } else if (!"attendance.leave_counts_as_present".equals(key)) {
       try {
-        if (Double.parseDouble(value) < 0) throw ApiException.bad("Value must not be negative");
+        double v = Double.parseDouble(value);
+        if (v < 0) throw ApiException.bad("Value must not be negative");
+        if (key.equals("attendance.threshold") && v > 100) throw ApiException.bad("Threshold cannot exceed 100");
+        if (key.equals("signals.ia_min_attended") && v > 3) throw ApiException.bad("Cannot exceed 3 examinations");
+        if (key.equals("signals.consecutive_absence_days") && v < 1) throw ApiException.bad("Must be at least 1");
       } catch (NumberFormatException e) { throw ApiException.bad("Value must be numeric"); }
     } else if (!value.equals("true") && !value.equals("false")) {
       throw ApiException.bad("Value must be true or false");

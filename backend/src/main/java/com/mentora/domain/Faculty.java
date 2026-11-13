@@ -11,4 +11,5 @@ public class Faculty {
   private Long departmentId;
   private String employeeId;
   private String designation;
+  @Column(name="is_counsellor") private boolean counsellor;
 }

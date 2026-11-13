@@ -8,6 +8,7 @@ import java.util.*;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
   Page<Notification> findByUserId(Long userId, Pageable p);
+  Page<Notification> findByUserIdAndReadFalse(Long userId, Pageable p);
   long countByUserIdAndReadFalse(Long userId);
   boolean existsByUserIdAndDedupeKey(Long userId, String key);
   @Modifying @Query("update Notification n set n.read = true where n.userId = :uid and n.read = false")

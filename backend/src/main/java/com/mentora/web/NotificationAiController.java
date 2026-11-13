@@ -21,7 +21,11 @@ class NotificationController {
   NotificationController(NotificationService notifications, AccessService access) { this.notifications = notifications; this.access = access; }
 
   @GetMapping
-  public List<NotificationService.NotificationDto> list(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "30") int size) { return notifications.list(access.current().id(), page, size); }
+  public List<NotificationService.NotificationDto> list(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "30") int size,
+                                                        @RequestParam(required = false) Boolean unread, @RequestParam(required = false) String type) {
+    var l = notifications.list(access.current().id(), page, size, Boolean.TRUE.equals(unread));
+    return type == null || type.isBlank() ? l : l.stream().filter(n -> n.type().name().equals(type)).toList();
+  }
 
   @GetMapping("/unread-count")
   public Map<String, Object> unread() { return Map.of("count", notifications.unread(access.current().id())); }

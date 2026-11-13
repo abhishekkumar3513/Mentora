@@ -18,9 +18,11 @@ public class AttendanceAlertService {
   private final AttendanceCalc calc;
   private final SettingsService settings;
   private final NotificationService notifications;
+  private final SupportSignalService signals;
 
   public AttendanceAlertService(StudentRepository students, UserRepository users, AttendanceRepository attendance, AccessService access,
-                                AttendanceCalc calc, SettingsService settings, NotificationService notifications) {
+                                AttendanceCalc calc, SettingsService settings, NotificationService notifications, SupportSignalService signals) {
+    this.signals = signals;
     this.students = students; this.users = users; this.attendance = attendance; this.access = access; this.calc = calc;
     this.settings = settings; this.notifications = notifications;
   }
@@ -29,8 +31,6 @@ public class AttendanceAlertService {
   @Transactional
   public int evaluate(Collection<Long> studentIds, LocalDate date) {
     int created = 0;
-    double threshold = settings.num("attendance.threshold", 75);
-    int consecLimit = settings.integer("attendance.consecutive_absence_days", 2);
     double declinePts = settings.num("attendance.decline_points", 20);
     for (Student s : students.findByIdIn(studentIds)) {
       Faculty mentor = access.mentorOf(s.getId());
@@ -44,14 +44,7 @@ public class AttendanceAlertService {
       if (today == AttStatus.A) {
         if (notifications.notify(mentor.getUserId(), NotificationType.ABSENCE, "Attendance Alert",
             "Attendance Alert: " + label + " was marked absent on " + date + ".", link, "ABS:" + s.getId() + ":" + date)) created++;
-        int consec = AttendanceCalc.consecutiveAbsent(daily, date);
-        if (consec >= consecLimit && notifications.notify(mentor.getUserId(), NotificationType.CONSECUTIVE_ABSENCE, "Consecutive absences",
-            label + " has been absent for " + consec + " consecutive days (up to " + date + ").", link, "CONSEC:" + s.getId() + ":" + date)) created++;
       }
-      var sum = calc.summarize(all);
-      if (sum.conducted() > 0 && sum.percent() < threshold && today != AttStatus.NC
-          && notifications.notify(mentor.getUserId(), NotificationType.LOW_ATTENDANCE, "Low attendance",
-          label + " has overall attendance of " + sum.percent() + "%, below the " + (int) threshold + "% threshold.", link, "LOW:" + s.getId() + ":" + date)) created++;
       // significant decline: last 7 days vs the 21 days before that
       List<Attendance> recent = all.stream().filter(a -> !a.getDate().isAfter(date) && a.getDate().isAfter(date.minusDays(7))).toList();
       List<Attendance> before = all.stream().filter(a -> !a.getDate().isAfter(date.minusDays(7)) && a.getDate().isAfter(date.minusDays(28))).toList();
@@ -60,6 +53,8 @@ public class AttendanceAlertService {
           && notifications.notify(mentor.getUserId(), NotificationType.ATTENDANCE_DECLINE, "Attendance decline",
           label + "'s attendance dropped from " + b.percent() + "% to " + r.percent() + "% over the last week.", link, "DECL:" + s.getId() + ":" + date)) created++;
     }
+    // support signals (attendance threshold, consecutive absence, assignments, IA attendance) are owned by SupportSignalService
+    created += signals.evaluate(studentIds, LocalDate.now());
     return created;
   }
 
