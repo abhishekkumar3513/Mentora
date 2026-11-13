@@ -76,7 +76,12 @@ public class DemoDataSeeder implements ApplicationRunner {
   @Override
   public void run(ApplicationArguments args) {
     if (!props.seedDemoData()) { log.info("Demo seeding disabled"); return; }
-    tx.executeWithoutResult(s -> seed());
+    try {
+      tx.executeWithoutResult(s -> seed());
+    } catch (Exception e) {
+      // Demo data is optional: a seeding problem (for example accounts the admin has since renamed) must never stop the application.
+      log.warn("Demo data seeding skipped because of an error: {}", e.toString());
+    }
   }
 
   // Templates 0-19 (first 20 students). Students 21-60 reuse these scenarios with different people.
@@ -125,7 +130,13 @@ public class DemoDataSeeder implements ApplicationRunner {
   }
 
   private void seed() {
-    boolean fresh = !users.existsByEmailIgnoreCase(ADMIN_EMAIL);
+    // "Fresh" = an empty database. On an existing one nothing is looked up by demo email (admins may have changed them);
+    // mentors are found by their employee IDs and only the missing demo students are added.
+    boolean fresh = users.count() == 0;
+    if (!fresh && java.util.stream.IntStream.range(0, STUDENT_COUNT).allMatch(i -> students.findByUsnIgnoreCase(String.format("1RN23IS%03d", i + 1)).isPresent())) {
+      log.info("Demo data already complete; nothing to seed");
+      return;
+    }
     Department ise;
     User m1u, m2u;
     Faculty m1, m2;
@@ -145,11 +156,16 @@ public class DemoDataSeeder implements ApplicationRunner {
       for (String[] s : SEM5) sem5.add(subject(s, 5, ise));
       for (int i = 0; i < PAST.length; i++) { List<Subject> l = new ArrayList<>(); for (String[] s : PAST[i]) l.add(subject(s, i + 1, ise)); past.add(l); }
     } else {
-      ise = departments.findByCodeIgnoreCase("ISE").orElseThrow();
-      m1u = users.findByEmailIgnoreCase("mentor1@mentora.edu").orElseThrow();
-      m2u = users.findByEmailIgnoreCase("mentor2@mentora.edu").orElseThrow();
-      m1 = faculty.findByUserId(m1u.getId()).orElseThrow();
-      m2 = faculty.findByUserId(m2u.getId()).orElseThrow();
+      Optional<Department> dept = departments.findByCodeIgnoreCase("ISE");
+      m1 = faculty.findAll().stream().filter(f -> "EMP1001".equals(f.getEmployeeId())).findFirst().orElse(null);
+      m2 = faculty.findAll().stream().filter(f -> "EMP1002".equals(f.getEmployeeId())).findFirst().orElse(null);
+      if (dept.isEmpty() || m1 == null || m2 == null) {
+        log.warn("Demo mentors (EMP1001/EMP1002) or the ISE department were removed; not adding more demo students");
+        return;
+      }
+      ise = dept.get();
+      m1u = users.findById(m1.getUserId()).orElseThrow();
+      m2u = users.findById(m2.getUserId()).orElseThrow();
       sem5.addAll(subjects.findBySemesterOrderByCode(5));
       for (int sem = 1; sem <= 4; sem++) past.add(subjects.findBySemesterOrderByCode(sem));
     }
@@ -162,6 +178,7 @@ public class DemoDataSeeder implements ApplicationRunner {
     for (int i = 0; i < STUDENT_COUNT; i++) {
       String usn = String.format("1RN23IS%03d", i + 1);
       if (students.findByUsnIgnoreCase(usn).isPresent()) continue;
+      if (users.existsByEmailIgnoreCase(usn.toLowerCase() + "@mentora.edu")) continue;   // email taken by a renamed account
       Profile p = profileFor(i);
       User u = user(p.name(), usn.toLowerCase() + "@mentora.edu", "Student@123", Role.STUDENT);
       Student s = new Student(); s.setUserId(u.getId()); s.setDepartmentId(ise.getId()); s.setUsn(usn); s.setSemester(5); s.setSection("A"); students.save(s);

@@ -249,6 +249,19 @@ class IntegrationTests {
     call(put("/api/admin/settings/ia.converted_max").contentType(MediaType.APPLICATION_JSON).content("{\"value\":\"25\"}"), admin, 200);
   }
 
+  @Test @Order(13) void restartAfterAdminRenamesDemoAccountsDoesNotBreakSeeding(@Autowired com.mentora.service.DemoDataSeeder seeder,
+                                                                                @Autowired com.mentora.repo.UserRepository users,
+                                                                                @Autowired com.mentora.repo.StudentRepository students) throws Exception {
+    String admin = token("admin@mentora.edu", "Admin@123");
+    long mentorId = call(get("/api/admin/mentors"), admin, 200).get(0).get("id").asLong();
+    call(put("/api/admin/mentors/" + mentorId).contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"renamed.mentor@mentora.edu\"}"), admin, 200);
+    long before = students.count();
+    seeder.run(new org.springframework.boot.DefaultApplicationArguments());      // simulates the next application start
+    assertEquals(before, students.count(), "seeding must not duplicate or fail");
+    assertTrue(users.findByEmailIgnoreCase("renamed.mentor@mentora.edu").isPresent());
+    call(get("/api/auth/me"), token("renamed.mentor@mentora.edu", "Mentor@123"), 200);   // renamed account still works
+  }
+
   @Test @Order(12) void mentorManagesOwnRosterAndAttendance() throws Exception {
     String admin = token("admin@mentora.edu", "Admin@123"), m1 = token("mentor1@mentora.edu", "Mentor@123"), m2 = token("mentor2@mentora.edu", "Mentor@123");
     String stuTok = token("1rn23is001@mentora.edu", "Student@123");
